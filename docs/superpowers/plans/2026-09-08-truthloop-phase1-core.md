@@ -4449,6 +4449,22 @@ Expected: tous les tests passent, couverture ≥ 85 %, aucune erreur.
 
 Demander à l'utilisateur s'il souhaite un commit (message proposé : `✨ feat(truthloop): repair planner, config and run directory`). Ne pas committer sans réponse.
 
+### Écarts appliqués après la revue qualité du chunk 4
+
+- `runs.py` : dossiers d'itération strictement `iter-NN` (au moins deux chiffres ASCII, `0` ignoré,
+  doublons → `RunError`) ; `read_trace` et `load_verdict` lèvent `RunError` sur ligne ou fichier
+  invalide au lieu d'exceptions brutes ; `write_verdict` écrit dans un fichier temporaire puis
+  `os.replace` (atomique).
+- `config.py` : `OSError` à la lecture → `ConfigError` ; messages pydantic formatés via `errors_from` ;
+  `knowledge.path` non vide, clés de `queries` restreintes à celles de `DEFAULT_QUERIES`, chemins de
+  `paths` non vides.
+- `planner.py` : la famille d'une action est stockée explicitement sur le candidat au lieu d'être
+  déduite du type de la première entité.
+- Tests ajoutés : dossiers d'itération, aller-retour et erreurs de `verdict.json`, erreurs de trace,
+  config illisible et clés inconnues, résumé à trois familles avec `expected_programs = 0`.
+- `inputs_sha256` : chaque entrée est hachée sous la forme `<position>:<JSON>\n` (spec §4.5 amendé) pour
+  que `[A, absent]` et `[absent, A]` ne donnent pas le même hash.
+
 ---
 
 ## Chunk 5 : moteur d'évaluation et CLI

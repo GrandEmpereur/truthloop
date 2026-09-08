@@ -245,9 +245,10 @@ Exemple cohérent avec §6 : E contient 5 programmes attendus dont 3 cités (`co
   repris tels quels dans `repair_plan.actions[].entities`).
 - `caps_applied` : liste de `{"name": "contradiction", "value": 70}` (nom de la clé dans
   `scoring.caps`, valeur appliquée).
-- `inputs_sha256` : SHA-256 de la concaténation des JSON canoniques (clés triées, séparateurs
-  compacts, UTF-8) de `question`, `answer`, `evidence`, `judge`, dans cet ordre, chaque
-  fichier absent remplacé par la chaîne vide. `config_sha256` : même canonisation de la config
+- `inputs_sha256` : SHA-256 de la concaténation, pour `question`, `answer`, `evidence`, `judge` dans
+  cet ordre, d'une ligne `<position>:<JSON canonique>\n` par fichier (clés triées, séparateurs
+  compacts, UTF-8 ; position de 0 à 3 ; fichier absent → JSON vide). Le préfixe de position évite
+  qu'un fichier absent déplace le contenu d'un autre sans changer le hash. `config_sha256` : même canonisation de la config
   effective. `knowledge_fingerprint` : §5.
 - Le même triplet (entrées, config, version) produit toujours le même verdict, `generated_at`
   exclu.
