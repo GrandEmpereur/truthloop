@@ -1472,6 +1472,14 @@ Expected: `6 passed`
 Run: `uv run ruff format src tests && uv run ruff check src tests && uv run mypy`
 Expected: aucune erreur. Si mypy ne résout pas `from helpers import …` ou `from conftest import …`, ajouter `mypy_path = "tests"` sous `[tool.mypy]` dans `pyproject.toml`.
 
+### Écarts appliqués après la revue qualité du chunk 1
+
+- `bundle.py` : `_read` intercepte `(OSError, ValueError)` (erreurs d'encodage comprises), rejette tout
+  JSON qui n'est pas un objet (`objet JSON attendu`) et formate tous les `loc` via `_format_loc`
+  (`judge.claims.0.id`). Le code du Task 7 ci-dessus a été mis à jour en conséquence.
+- Tests : `match=` précis par cas dans `test_answer_rejects_invalid` ; `test_verdict_requires_all_components` ;
+  deux tests `bundle` (JSON `null`, fichier non décodable). `.coverage` ajouté au `.gitignore`.
+
 ---
 
 ## Chunk 2 : sources de connaissance
@@ -2219,6 +2227,22 @@ Expected: tous les tests passent, couverture ≥ 85 %, aucune erreur de lint. Si
 - [ ] **Step 7 : Point de contrôle**
 
 Demander à l'utilisateur s'il souhaite un commit des chunks 1 et 2 (message proposé : `✨ feat(truthloop): contracts and knowledge sources`). Ne pas committer sans réponse.
+
+### Écarts appliqués après la revue qualité du chunk 2
+
+Les points suivants, absents du code ci-dessus, ont été ajoutés à l'implémentation à la demande du
+reviewer (tous couverts par un test de régression) :
+
+- `graph.py` : les ids vides après normalisation et les ids en double (deux ids bruts qui se
+  normalisent pareil) lèvent `KnowledgeError` (`_index`) ; `_require` signale « inconnu ou vide ».
+- `graph.py` : les lignes `program_tables` en conflit (`read` puis `write`) fusionnent en `both`
+  quel que soit l'ordre des lignes (`_merge_access`), pour un résultat identique entre backends.
+- `graph.py` : `resolve` utilise un mapping explicite (`release` → `docs`) ; `has_edge` lit une table
+  `_ACCESS_FOR_PREDICATE`.
+- `files.py` : CSV lus en `utf-8-sig` (BOM Excel toléré) avec `restval=""` (lignes courtes → id vide
+  → `KnowledgeError`) ; l'empreinte est « logique » (BOM et CRLF normalisés).
+- Tests ajoutés : ids vides / doublons, fusion des accès, `tables_of` sur le périmètre attendu
+  (fait l. 72), CSV avec BOM et ligne courte.
 
 ---
 

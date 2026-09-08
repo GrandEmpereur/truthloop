@@ -1,13 +1,62 @@
 from __future__ import annotations
 
+import json
+import sqlite3
 from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
 from helpers import write_json
+from truthloop.knowledge.files import load_files
+from truthloop.knowledge.graph import InMemoryGraph
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 RunBuilder = Callable[..., Path]
+
+
+@pytest.fixture
+def graph() -> InMemoryGraph:
+    return load_files(FIXTURES / "graph.json")
+
+
+@pytest.fixture
+def sqlite_path(tmp_path: Path) -> Path:
+    """Build a SQLite database with the logical schema from tests/fixtures/graph.json."""
+    data = json.loads((FIXTURES / "graph.json").read_text(encoding="utf-8"))
+    path = tmp_path / "magic.db"
+    conn = sqlite3.connect(path)
+    with conn:
+        conn.executescript(
+            """
+            CREATE TABLE programs (id TEXT, name TEXT);
+            CREATE TABLE tables (id TEXT, name TEXT);
+            CREATE TABLE calls (caller_id TEXT, callee_id TEXT);
+            CREATE TABLE program_tables (program_id TEXT, table_id TEXT, access TEXT);
+            CREATE TABLE docs (id TEXT, title TEXT, source TEXT);
+            """
+        )
+        conn.executemany(
+            "INSERT INTO programs VALUES (?, ?)", [(r["id"], r["name"]) for r in data["programs"]]
+        )
+        conn.executemany(
+            "INSERT INTO tables VALUES (?, ?)", [(r["id"], r["name"]) for r in data["tables"]]
+        )
+        conn.executemany(
+            "INSERT INTO calls VALUES (?, ?)",
+            [(r["caller_id"], r["callee_id"]) for r in data["calls"]],
+        )
+        conn.executemany(
+            "INSERT INTO program_tables VALUES (?, ?, ?)",
+            [(r["program_id"], r["table_id"], r["access"]) for r in data["program_tables"]],
+        )
+        conn.executemany(
+            "INSERT INTO docs VALUES (?, ?, ?)",
+            [(r["id"], r["title"], r["source"]) for r in data["docs"]],
+        )
+    conn.close()
+    return path
 
 
 @pytest.fixture

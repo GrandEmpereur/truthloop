@@ -1,0 +1,39 @@
+{
+  "programs": [
+    {"id": "PRG_MAIN_MENU", "name": "Main menu"},
+    {"id": "PRG_ORD_SAVE", "name": "Order save"},
+    {"id": "PRG_ORD_VALID", "name": "Order validation"},
+    {"id": "PRG_ORD_NOTIFY", "name": "Order notification"},
+    {"id": "PRG_ORD_ARCHIVE", "name": "Order archive"},
+    {"id": "PRG_CUST_LOAD", "name": "Customer load"},
+    {"id": "PRG_INV_CHECK", "name": "Inventory check"},
+    {"id": "PRG_REPORT", "name": "Reporting"}
+  ],
+  "tables": [
+    {"id": "T_ORDERS", "name": "Orders"},
+    {"id": "T_ORDER_LINES", "name": "Order lines"},
+    {"id": "T_CUSTOMERS", "name": "Customers"},
+    {"id": "T_STOCK", "name": "Stock"}
+  ],
+  "calls": [
+    {"caller_id": "PRG_MAIN_MENU", "callee_id": "PRG_ORD_SAVE"},
+    {"caller_id": "PRG_ORD_SAVE", "callee_id": "PRG_ORD_VALID"},
+    {"caller_id": "PRG_ORD_NOTIFY", "callee_id": "PRG_ORD_VALID"},
+    {"caller_id": "PRG_ORD_VALID", "callee_id": "PRG_CUST_LOAD"},
+    {"caller_id": "PRG_ORD_VALID", "callee_id": "PRG_INV_CHECK"},
+    {"caller_id": "PRG_ORD_SAVE", "callee_id": "PRG_ORD_ARCHIVE"},
+    {"caller_id": "PRG_REPORT", "callee_id": "PRG_ORD_ARCHIVE"}
+  ],
+  "program_tables": [
+    {"program_id": "PRG_ORD_SAVE", "table_id": "T_ORDERS", "access": "write"},
+    {"program_id": "PRG_ORD_SAVE", "table_id": "T_ORDER_LINES", "access": "write"},
+    {"program_id": "PRG_ORD_VALID", "table_id": "T_ORDERS", "access": "read"},
+    {"program_id": "PRG_CUST_LOAD", "table_id": "T_CUSTOMERS", "access": "read"},
+    {"program_id": "PRG_INV_CHECK", "table_id": "T_STOCK", "access": "both"},
+    {"program_id": "PRG_ORD_ARCHIVE", "table_id": "T_ORDERS", "access": "read"},
+    {"program_id": "PRG_REPORT", "table_id": "T_ORDERS", "access": "read"}
+  ],
+  "docs": [
+    {"id": "REL-2026.1", "title": "Release 2026.1", "source": "docs/releases/2026.1.md"}
+  ]
+}
