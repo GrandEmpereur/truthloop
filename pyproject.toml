@@ -1,0 +1,112 @@
+[project]
+name = "truthloop"
+version = "0.1.0"
+description = "Automated retrieval-evaluation harness: scores AI answers against retrieved evidence and loops repair strategies until the truth score clears a threshold."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Patrick Bartosik" }]
+keywords = ["rag", "evaluation", "retrieval", "llm", "groundedness", "hallucination"]
+
+# Runtime dependencies are deliberately minimal: every added library is one more
+# item to clear through corporate security review. The CLI uses stdlib argparse
+# rather than Typer/Click for the same reason.
+dependencies = [
+    "pydantic>=2.13.5",
+    "pyyaml>=6.0.3",
+    "rich>=15.0.0",
+]
+
+[project.optional-dependencies]
+# Only needed for the OpenAI-compatible judge. The default (heuristic) and the
+# Copilot-bridge judge require no network stack at all.
+http = ["httpx>=0.28.1"]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.3.1",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.6",
+    "types-pyyaml>=6.0.12",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.32,<0.12.0"]
+build-backend = "uv_build"
+
+# ---------------------------------------------------------------- ruff --------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",    # pycodestyle
+    "F",         # pyflakes
+    "I",         # isort
+    "N",         # pep8-naming
+    "UP",        # pyupgrade
+    "B",         # flake8-bugbear
+    "A",         # flake8-builtins
+    "C4",        # flake8-comprehensions
+    "DTZ",       # flake8-datetimez  (naive datetimes are a reproducibility bug)
+    "PT",        # flake8-pytest-style
+    "RET",       # flake8-return
+    "SIM",       # flake8-simplify
+    "ARG",       # flake8-unused-arguments
+    "PTH",       # flake8-use-pathlib
+    "ERA",       # eradicate (commented-out code)
+    "PL",        # pylint
+    "RUF",       # ruff-specific
+]
+ignore = [
+    "PLR0913",   # too many arguments: scoring functions legitimately take many weights
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004"]   # magic numbers are the point of a metric test
+
+[tool.ruff.lint.isort]
+known-first-party = ["truthloop"]
+
+# ---------------------------------------------------------------- mypy --------
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+disallow_any_explicit = true
+show_error_codes = true
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_any_explicit = false
+
+# -------------------------------------------------------------- pytest --------
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=truthloop",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-fail-under=85",
+]
+markers = [
+    "network: test requires an external LLM endpoint (deselected by default)",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/truthloop"]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+]
