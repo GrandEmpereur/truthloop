@@ -5,9 +5,9 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Final
+from typing import Final, cast
 
-from truthloop.contracts.common import Direction
+from truthloop.contracts.common import ComponentName, Direction
 from truthloop.contracts.repair_plan import (
     ActionKind,
     ContractError,
@@ -93,7 +93,7 @@ class _Candidate:
     entities: list[RepairEntity] = field(default_factory=list)
     queries: RetrievalQueries | None = None
     claim_ids: list[str] = field(default_factory=list)
-    component: str | None = None
+    component: ComponentName | None = None
     order: int = 0
     family: str = ""
 
@@ -340,10 +340,14 @@ def _fallback(inp: PlannerInput) -> _Candidate:
         for name, c in inp.components.items()
         if c.applicable and c.value is not None
     ]
-    lowest = (
+    # inp.components is keyed by str (it flows from scoring.ScoreBreakdown, built by iterating
+    # COMPONENT_NAMES), but every key is in fact a ComponentName; cast rather than re-key the
+    # whole scoring pipeline just for this fallback branch.
+    lowest = cast(
+        ComponentName,
         min(applicable, key=lambda item: (item[1], item[0]))[0]
         if applicable
-        else "relevance_completeness"
+        else "relevance_completeness",
     )
     notes = inp.judge_notes.strip()
     return _Candidate(

@@ -72,7 +72,10 @@ def load_files(path: Path) -> InMemoryGraph:
 
 
 def _from_json(path: Path) -> InMemoryGraph:
-    text = path.read_text(encoding="utf-8")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, ValueError) as exc:
+        raise KnowledgeError(f"{path.name} illisible : {exc}") from exc
     try:
         parsed = _GraphFile.model_validate(json.loads(text))
     except (json.JSONDecodeError, ValidationError) as exc:
@@ -102,7 +105,10 @@ def _from_csv(directory: Path) -> InMemoryGraph:
         # BOM-tolerant read; Path.read_text() also normalizes CRLF to "\n", so the digest is
         # a "logical" fingerprint (byte-identical content hashes the same regardless of BOM
         # or line-ending style).
-        text = csv_path.read_text(encoding="utf-8-sig")
+        try:
+            text = csv_path.read_text(encoding="utf-8-sig")
+        except (OSError, ValueError) as exc:
+            raise KnowledgeError(f"{csv_path.name} illisible : {exc}") from exc
         digest.update(name.encode("utf-8"))
         digest.update(text.encode("utf-8"))
         reader = csv.DictReader(io.StringIO(text), restval="")

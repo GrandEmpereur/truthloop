@@ -108,7 +108,7 @@ def load_config(path: Path) -> Config:
         raise ConfigError(f"configuration introuvable : {path}")
     try:
         text = path.read_text(encoding="utf-8")
-    except OSError as exc:
+    except (OSError, ValueError) as exc:
         raise ConfigError(f"configuration illisible ({path}) : {exc}") from exc
     try:
         data: object = yaml.safe_load(text)

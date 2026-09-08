@@ -56,6 +56,18 @@ def test_open_knowledge_dispatch(sqlite_path: Path) -> None:
         open_knowledge("neo4j", FIXTURE, {})
 
 
+def test_json_with_invalid_encoding_is_illisible(tmp_path: Path) -> None:
+    (tmp_path / "graph.json").write_bytes(b"\xff\xfe{")
+    with pytest.raises(KnowledgeError, match="illisible"):
+        load_files(tmp_path)
+
+
+def test_csv_with_invalid_encoding_is_illisible(tmp_path: Path) -> None:
+    (tmp_path / "programs.csv").write_bytes(b"\xff\xfe{")
+    with pytest.raises(KnowledgeError, match="illisible"):
+        load_files(tmp_path)
+
+
 def test_csv_with_bom_and_short_rows(tmp_path: Path) -> None:
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
     for name in ("programs", "tables", "calls", "program_tables"):

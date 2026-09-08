@@ -63,6 +63,13 @@ def test_missing_or_broken_file(tmp_path: Path) -> None:
         load_config(path)
 
 
+def test_config_with_invalid_encoding_is_illisible(tmp_path: Path) -> None:
+    path = tmp_path / "truthloop.yaml"
+    path.write_bytes(b"\xff\xfe{")
+    with pytest.raises(ConfigError, match="illisible"):
+        load_config(path)
+
+
 def test_resolve_path_is_relative_to_config(tmp_path: Path) -> None:
     config_path = tmp_path / "sub" / "truthloop.yaml"
     assert (

@@ -118,7 +118,8 @@ portent `schema_version` (entier, démarre à 1).
 - `intent` ∈ `impact_analysis` | `architecture` | `feature` | `diagram`. L'intent ne change
   pas le calcul des graders ; il sert au reporting et au seuil (§6.2) et détermine si une
   liste de claims vide est acceptable (§6, EvidenceSupport).
-- `pivot_entities` : programmes et / ou tables. Peut être vide (question ouverte).
+- `pivot_entities` : programmes et / ou tables (`type` ∈ `program` | `table`, restriction portée par le
+  schéma JSON lui-même). Peut être vide (question ouverte).
 - `direction` ∈ `callers` | `callees` | `both` (défaut `both`). Toujours utilisé dès qu'un
   pivot existe.
 - `depth` : profondeur de fermeture transitive attendue (défaut 1, min 1, max 5).
@@ -244,7 +245,10 @@ Exemple cohérent avec §6 : E contient 5 programmes attendus dont 3 cités (`co
   sont optionnels selon le code (`depth` / `via` portés par `MISSING_ENTITY` et `MISSING_TABLE`,
   repris tels quels dans `repair_plan.actions[].entities`).
 - `caps_applied` : liste de `{"name": "contradiction", "value": 70}` (nom de la clé dans
-  `scoring.caps`, valeur appliquée).
+  `scoring.caps`, valeur appliquée). `name`, comme `repair_plan.actions[].component`, est une
+  énumération fermée dans le schéma JSON (noms de plafonds, noms de composantes).
+- Tous les champs des contrats portent une `description` dans le schéma JSON exporté, pour qu'un
+  agent puisse les consommer sans lire le code.
 - `inputs_sha256` : SHA-256 de la concaténation, pour `question`, `answer`, `evidence`, `judge` dans
   cet ordre, d'une ligne `<position>:<JSON canonique>\n` par fichier (clés triées, séparateurs
   compacts, UTF-8 ; position de 0 à 3 ; fichier absent → JSON vide). Le préfixe de position évite

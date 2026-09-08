@@ -65,19 +65,19 @@ class RunDir:
         return self.path / f"iter-{iteration:02d}"
 
     def iterations(self) -> list[int]:
+        """Only ``iter-NN`` in its own canonical form counts: ``iter-001`` is ignored, not an
+        error, since it can never collide with the canonical name of any other number."""
         if not self.path.is_dir():
             return []
-        numbers: dict[int, str] = {}
+        numbers: set[int] = set()
         for child in self.path.iterdir():
             match = _ITERATION_DIR.match(child.name)
             if not child.is_dir() or not match:
                 continue
             number = int(match.group(1))
-            if number == 0:
+            if number == 0 or child.name != self.iteration_path(number).name:
                 continue
-            if number in numbers:
-                raise RunError(f"itérations en double dans {self.path} : {number}")
-            numbers[number] = child.name
+            numbers.add(number)
         return sorted(numbers)
 
     def latest_iteration(self) -> int:
@@ -91,7 +91,7 @@ class RunDir:
             raise RunError(f"question.json introuvable dans {self.path}")
         try:
             raw: object = json.loads(self.question_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+        except (OSError, ValueError) as exc:
             raise RunError(f"question.json illisible : {exc}") from exc
         try:
             question = Question.model_validate(raw)

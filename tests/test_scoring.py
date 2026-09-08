@@ -1,6 +1,9 @@
+from typing import cast
+
 import pytest
 
 from conftest import ContextBuilder
+from truthloop.contracts.common import ComponentName
 from truthloop.contracts.verdict import COMPONENT_NAMES, Finding
 from truthloop.graders import run_graders
 from truthloop.graders.base import GraderResult
@@ -17,7 +20,13 @@ CAPS = {"unknown_entity": 50, "contradiction": 70, "missing_judge": 85, "missing
 
 
 def _results(**values: float | None) -> list[GraderResult]:
-    return [GraderResult(component=name, value=values.get(name)) for name in COMPONENT_NAMES]
+    # COMPONENT_NAMES is a plain tuple[str, ...] (spec-derived, shared with non-typed config
+    # validation); every element is in fact a ComponentName, so cast rather than widen the
+    # shared tuple's element type just for this test helper.
+    return [
+        GraderResult(component=cast(ComponentName, name), value=values.get(name))
+        for name in COMPONENT_NAMES
+    ]
 
 
 def test_spec_example_scores_76_5() -> None:

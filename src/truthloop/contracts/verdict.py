@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Final, Literal, Self
+from typing import Final, Literal, Self, get_args
 
 from pydantic import Field, model_validator
 
-from truthloop.contracts.common import EntityRef, SchemaVersion, StrictModel
+from truthloop.contracts.common import CapName, ComponentName, EntityRef, SchemaVersion, StrictModel
 from truthloop.contracts.repair_plan import RepairPlan
 
 Severity = Literal["critical", "major", "info"]
@@ -28,19 +28,10 @@ FindingCode = Literal[
     "JUDGE_PARTIAL",
 ]
 
-COMPONENT_NAMES: Final[tuple[str, ...]] = (
-    "context_recall",
-    "table_recall",
-    "evidence_support",
-    "faithfulness",
-    "relevance_completeness",
-)
-CAP_NAMES: Final[tuple[str, ...]] = (
-    "unknown_entity",
-    "contradiction",
-    "missing_judge",
-    "missing_claims",
-)
+# Derived from the Literal aliases (rather than duplicated as string tuples) so the two
+# representations can never drift apart.
+COMPONENT_NAMES: Final[tuple[str, ...]] = get_args(ComponentName)
+CAP_NAMES: Final[tuple[str, ...]] = get_args(CapName)
 
 
 class Finding(StrictModel):
@@ -60,7 +51,7 @@ class Component(StrictModel):
 
 
 class CapApplied(StrictModel):
-    name: str
+    name: CapName
     value: int = Field(ge=0, le=100)
 
 

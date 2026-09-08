@@ -66,6 +66,14 @@ def test_run_dir_errors(tmp_path: Path, make_run: RunBuilder) -> None:
         RunDir(run_dir).load_question()
 
 
+def test_question_json_with_invalid_encoding_is_illisible(tmp_path: Path) -> None:
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "question.json").write_bytes(b"\xff\xfe{")
+    with pytest.raises(RunError, match="illisible"):
+        RunDir(run_dir).load_question()
+
+
 def test_trace_append_and_read(make_run: RunBuilder) -> None:
     run = RunDir(make_run(sample_question(), None, None, None))
     run.append_trace(
@@ -90,9 +98,9 @@ def test_iteration_dirs_are_strict(tmp_path: Path) -> None:
     for name in ("iter-01", "iter-1", "iter-00", "iter-abc", "iter-03"):
         (run_dir / name).mkdir(parents=True)
     assert RunDir(run_dir).iterations() == [1, 3]
+    # "iter-001" is not the canonical name for 1 ("iter-01"), so it is ignored, not an error.
     (run_dir / "iter-001").mkdir()
-    with pytest.raises(RunError, match="double"):
-        RunDir(run_dir).iterations()
+    assert RunDir(run_dir).iterations() == [1, 3]
 
 
 def test_verdict_round_trip_and_errors(make_run: RunBuilder) -> None:

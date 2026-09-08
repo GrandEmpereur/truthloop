@@ -98,3 +98,5 @@ def test_export_schemas_writes_six_files(tmp_path: Path) -> None:
     assert set(CONTRACTS) == {"question", "answer", "evidence", "judge", "verdict", "repair_plan"}
     schema = json.loads((tmp_path / "answer.schema.json").read_text(encoding="utf-8"))
     assert schema["additionalProperties"] is False
+    raw = (tmp_path / "answer.schema.json").read_text(encoding="utf-8")
+    assert raw.count('"description"') >= 10

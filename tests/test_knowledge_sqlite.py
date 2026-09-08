@@ -1,3 +1,4 @@
+import shutil
 import sqlite3
 from pathlib import Path
 
@@ -45,6 +46,13 @@ def test_missing_file_and_bad_query_raise(sqlite_path: Path, tmp_path: Path) -> 
         load_sqlite(sqlite_path, {"calls": "SELECT caller_id FROM calls"})
     with pytest.raises(KnowledgeError, match="programs"):
         load_sqlite(sqlite_path, {"programs": "SELECT * FROM does_not_exist"})
+
+
+def test_load_sqlite_path_with_question_mark_and_hash(sqlite_path: Path, tmp_path: Path) -> None:
+    weird_path = tmp_path / "we?ird#name.db"
+    shutil.copy(sqlite_path, weird_path)
+    graph = load_sqlite(weird_path, {})
+    assert graph.resolve("PRG_ORD_VALID", "program") is not None
 
 
 def test_default_queries_cover_logical_schema() -> None:

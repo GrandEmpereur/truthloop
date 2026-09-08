@@ -12,6 +12,12 @@ Direction = Literal["callers", "callees", "both"]
 Predicate = Literal["calls", "called_by", "reads", "writes"]
 Intent = Literal["impact_analysis", "architecture", "feature", "diagram"]
 SchemaVersion = Literal[1]
+# Defined here (rather than in verdict.py, which repair_plan.py's RepairAction needs) to
+# avoid a cycle: verdict.py already imports repair_plan.py for its embedded RepairPlan.
+ComponentName = Literal[
+    "context_recall", "table_recall", "evidence_support", "faithfulness", "relevance_completeness"
+]
+CapName = Literal["unknown_entity", "contradiction", "missing_judge", "missing_claims"]
 
 _SEPARATORS = re.compile(r"[-_\s]+")
 

@@ -12,12 +12,13 @@ def grade_citations(ctx: GraderContext) -> list[GraderResult]:
     unknown_pivots: set[EntityRef] = set()
     for pivot in ctx.question.pivot_entities:
         if ctx.knowledge.resolve(pivot.id, pivot.type) is None:
-            unknown_pivots.add(pivot)
+            entity = pivot.as_entity()
+            unknown_pivots.add(entity)
             findings.append(
                 Finding(
                     code="UNKNOWN_PIVOT",
                     severity="critical",
-                    entity=pivot,
+                    entity=entity,
                     detail=f"Pivot {pivot.id} ({pivot.type}) inconnu du graphe : corriger question.json.",
                 )
             )

@@ -50,7 +50,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     console = Console(soft_wrap=True, emoji=False, highlight=False)
     try:
         return handler(args, console)
-    except (RunError, ConfigError, KnowledgeError, OSError) as exc:
+    except (RunError, ConfigError, KnowledgeError, OSError, ValueError) as exc:
         Console(stderr=True, soft_wrap=True, emoji=False, highlight=False).print(
             f"erreur : {exc}", markup=False, style="red"
         )

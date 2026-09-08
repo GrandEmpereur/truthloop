@@ -31,9 +31,16 @@ def _normalize_all(values: list[str]) -> list[str]:
 
 
 class Relation(StrictModel):
-    subject: str = Field(min_length=1)
-    predicate: Predicate
-    object: str = Field(min_length=1)
+    subject: str = Field(
+        min_length=1, description="Id of the acting program; must be a declared program entity."
+    )
+    predicate: Predicate = Field(
+        description="The relationship asserted between subject and object."
+    )
+    object: str = Field(
+        min_length=1,
+        description="Id of the target entity; its declared type must match the predicate.",
+    )
 
     @field_validator("subject", "object")
     @classmethod
@@ -42,12 +49,22 @@ class Relation(StrictModel):
 
 
 class Claim(StrictModel):
-    id: str = Field(min_length=1)
-    text: str = Field(min_length=1)
-    entities: list[str] = Field(default_factory=list)
-    citations: list[str] = Field(default_factory=list)
-    relation: Relation | None = None
-    confidence_self: float | None = Field(default=None, ge=0.0, le=1.0)
+    id: str = Field(min_length=1, description="Unique identifier of the claim within this answer.")
+    text: str = Field(min_length=1, description="Natural-language statement being claimed.")
+    entities: list[str] = Field(
+        default_factory=list,
+        description="Entity ids this claim is about; each must be declared in answer.entities.",
+    )
+    citations: list[str] = Field(
+        default_factory=list,
+        description="Chunk ids supporting this claim; each must reference evidence.chunks[].id.",
+    )
+    relation: Relation | None = Field(
+        default=None, description="Structured relation this claim asserts, if any."
+    )
+    confidence_self: float | None = Field(
+        default=None, ge=0.0, le=1.0, description="Producer's own confidence in this claim, 0 to 1."
+    )
 
     @field_validator("entities")
     @classmethod
@@ -56,8 +73,14 @@ class Claim(StrictModel):
 
 
 class Abstention(StrictModel):
-    text: str = Field(min_length=1)
-    entities: list[str] = Field(default_factory=list)
+    text: str = Field(
+        min_length=1,
+        description="Natural-language description of a gap the producer chose not to fill.",
+    )
+    entities: list[str] = Field(
+        default_factory=list,
+        description="Entity ids the gap relates to; reported for context, never scored.",
+    )
 
     @field_validator("entities")
     @classmethod
@@ -69,11 +92,23 @@ class Answer(StrictModel):
     schema_version: SchemaVersion = 1
     question_id: str = Field(min_length=1)
     iteration: int = Field(ge=1)
-    producer: str = Field(min_length=1)
-    entities: list[EntityRef] = Field(default_factory=list)
-    claims: list[Claim] = Field(default_factory=list)
-    abstentions: list[Abstention] = Field(default_factory=list)
-    final_text: str = ""
+    producer: str = Field(
+        min_length=1, description="Name of the agent or pipeline that wrote this answer."
+    )
+    entities: list[EntityRef] = Field(
+        default_factory=list,
+        description="Every entity this answer references; claims and abstentions may only cite these.",
+    )
+    claims: list[Claim] = Field(
+        default_factory=list, description="Cited, checkable statements the answer makes."
+    )
+    abstentions: list[Abstention] = Field(
+        default_factory=list,
+        description="Declared gaps the answer knowingly leaves open; never scored as claims.",
+    )
+    final_text: str = Field(
+        default="", description="The full natural-language answer shown to the end user."
+    )
 
     @model_validator(mode="after")
     def _check_references(self) -> Self:

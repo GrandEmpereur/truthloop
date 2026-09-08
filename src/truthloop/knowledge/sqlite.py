@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import sqlite3
+import urllib.parse
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Final
@@ -30,7 +31,9 @@ def load_sqlite(path: Path, queries: Mapping[str, str]) -> InMemoryGraph:
     if not path.is_file():
         raise KnowledgeError(f"base SQLite introuvable : {path}")
     merged = {**DEFAULT_QUERIES, **queries}
-    uri = path.resolve().as_uri() + "?mode=ro"
+    # ``Path.as_uri()`` treats a literal ``?`` or ``#`` in the path as the start of the query
+    # string or fragment, silently truncating it; percent-encode the path ourselves instead.
+    uri = "file:" + urllib.parse.quote(str(path.resolve())) + "?mode=ro"
     try:
         conn = sqlite3.connect(uri, uri=True)
     except sqlite3.Error as exc:

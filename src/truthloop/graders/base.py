@@ -6,6 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from truthloop.contracts.answer import Answer
+from truthloop.contracts.common import CapName, ComponentName
 from truthloop.contracts.evidence import Evidence
 from truthloop.contracts.judge import Judge
 from truthloop.contracts.question import Question
@@ -26,11 +27,11 @@ class GraderContext:
 class GraderResult:
     """One component value (or a gate-only result when ``component`` is None)."""
 
-    component: str | None
+    component: ComponentName | None
     value: float | None
     findings: tuple[Finding, ...] = ()
     # ``cap`` names a key of ``scoring.caps``; ``scoring.aggregate`` resolves it to a value.
-    cap: str | None = None
+    cap: CapName | None = None
     expected_size: int | None = None
 
 

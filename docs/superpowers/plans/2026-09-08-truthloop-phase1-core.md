@@ -5151,3 +5151,14 @@ Demander à l'utilisateur s'il souhaite un commit (message proposé : `✨ feat(
 - Tests : erreurs argparse et `--version`, itération non évaluée dans `trace`, `history()` unitaire,
   score épinglé, déterminisme vérifié avec deux horodatages différents.
 - README : ajout d'une section « Dépannage » (flag `hidden` macOS sur `.venv`).
+
+### Écarts appliqués après la revue finale de la phase 1
+
+- Encodage invalide (`UnicodeDecodeError`, sous-classe de `ValueError`) intercepté à chaque lecture de
+  fichier (`config.py`, `runs.py`, `knowledge/files.py`) et dans la CLI : message explicite, aucun
+  traceback (spec §10).
+- Schémas JSON : `description` sur les champs des contrats consommés par les agents ; `PivotRef`
+  limite les pivots à `program` / `table` dans le schéma ; `component` et `cap` deviennent des
+  énumérations (`ComponentName`, `CapName` dans `contracts/common.py`).
+- `runs.py` : seul le nom canonique `iter-NN` (`iteration_path(n).name`) est reconnu.
+- `sqlite.py` : chemin percent-encodé dans l'URI `file:…?mode=ro` (chemins contenant `?` ou `#`).
