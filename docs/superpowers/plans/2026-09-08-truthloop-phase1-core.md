@@ -3475,6 +3475,19 @@ Expected: tous les tests passent, couverture ≥ 85 %, aucune erreur.
 
 Demander à l'utilisateur s'il souhaite un commit (message proposé : `✨ feat(truthloop): deterministic graders and scoring`). Ne pas committer sans réponse.
 
+### Écarts appliqués après la revue qualité du chunk 3
+
+- `scoring.py` : `raw` borné à `[0, 100]` (une somme de poids × valeurs peut donner 100,00000000000001
+  en flottant, ce que `Verdict.score` rejette) ; `decide` prend ses paramètres après `findings` en
+  mots-clés seulement.
+- `evidence.py` : la contenance compare des « parties » (texte et id découpés de la même façon, puis
+  séparés sur `_`) au lieu de fenêtres de tokens jointes par `_` ; les ids avec un point
+  (`rel_2026.1`) et les formes `PRG- ORD- VALID` sont reconnus ; chaque chunk est tokenisé une seule
+  fois par évaluation. Spec §6 mis à jour.
+- `rubric.py` : `_finding` typé (`FindingCode`, `Severity`) et branche `contradicted` explicite.
+- `coverage.py` : suppression du repli `"?"` inatteignable dans `_grade_tables`.
+- Tests ajoutés : borne à 100, quatre cas de contenance, question à deux pivots programmes.
+
 ---
 
 ## Chunk 4 : planner, configuration, dossier de run

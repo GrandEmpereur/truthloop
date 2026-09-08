@@ -7,13 +7,19 @@ from pathlib import Path
 
 import pytest
 
-from helpers import write_json
+from helpers import sample_answer, sample_evidence, sample_judge, sample_question, write_json
+from truthloop.contracts.answer import Answer
+from truthloop.contracts.evidence import Evidence
+from truthloop.contracts.judge import Judge
+from truthloop.contracts.question import Question
+from truthloop.graders.base import GraderContext
 from truthloop.knowledge.files import load_files
 from truthloop.knowledge.graph import InMemoryGraph
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
 RunBuilder = Callable[..., Path]
+ContextBuilder = Callable[..., GraderContext]
 
 
 @pytest.fixture
@@ -81,5 +87,26 @@ def make_run(tmp_path: Path) -> RunBuilder:
             if data is not None:
                 write_json(iter_dir / f"{name}.json", data)
         return run_dir
+
+    return _make
+
+
+@pytest.fixture
+def make_ctx(graph: InMemoryGraph) -> ContextBuilder:
+    def _make(
+        question: dict[str, object] | None = None,
+        answer: dict[str, object] | None = None,
+        evidence: dict[str, object] | None = None,
+        judge: dict[str, object] | None = None,
+        *,
+        no_judge: bool = False,
+    ) -> GraderContext:
+        return GraderContext(
+            question=Question.model_validate(question or sample_question()),
+            answer=Answer.model_validate(answer or sample_answer()),
+            evidence=Evidence.model_validate(evidence or sample_evidence()),
+            judge=None if no_judge else Judge.model_validate(judge or sample_judge()),
+            knowledge=graph,
+        )
 
     return _make
