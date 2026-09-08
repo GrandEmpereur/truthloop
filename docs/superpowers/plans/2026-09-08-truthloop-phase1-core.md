@@ -5138,3 +5138,16 @@ Expected: `exit=2`, tableau des composantes avec `context_recall 0.50`, plan de 
 - [ ] **Step 5 : Point de contrôle**
 
 Demander à l'utilisateur s'il souhaite un commit (message proposé : `✨ feat(truthloop): evaluation engine and CLI (phase 1)`), puis proposer d'écrire le plan de la phase 2 (repair loop côté Copilot : agents `.agent.md` et fichier d'instructions).
+
+### Écarts appliqués après la revue qualité du chunk 5
+
+- `cli.py` : les erreurs argparse sortent avec le code 1 (le code 2 est réservé à `repair`) ;
+  `--version` ; `--iteration` doit être ≥ 1 ; `OSError` traité comme les erreurs typées ; consoles
+  Rich créées avec `emoji=False, highlight=False`.
+- `engine.py` : une itération < 1 lève `RunError`.
+- `runs.py` : `TraceRow` et `RunDir.history()` (logique de diff des findings entre itérations,
+  itérations non évaluées signalées « non évaluée ») déplacés hors de la CLI ;
+  `finding_target()` partagé dans `contracts/verdict.py`.
+- Tests : erreurs argparse et `--version`, itération non évaluée dans `trace`, `history()` unitaire,
+  score épinglé, déterminisme vérifié avec deux horodatages différents.
+- README : ajout d'une section « Dépannage » (flag `hidden` macOS sur `.venv`).

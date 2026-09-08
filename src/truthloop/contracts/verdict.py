@@ -92,3 +92,8 @@ class Verdict(StrictModel):
         if set(self.components) != set(COMPONENT_NAMES):
             raise ValueError(f"components doit contenir exactement {sorted(COMPONENT_NAMES)}")
         return self
+
+
+def finding_target(finding: Finding) -> str:
+    """The claim or entity a finding is about, for display and diffing (spec §8.2)."""
+    return finding.claim_id or (finding.entity.id if finding.entity is not None else "")

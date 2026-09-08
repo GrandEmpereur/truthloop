@@ -7,7 +7,29 @@ from conftest import RunBuilder
 from helpers import sample_answer, sample_question
 from truthloop.contracts.repair_plan import RepairPlan
 from truthloop.contracts.verdict import COMPONENT_NAMES, Component, Provenance, Verdict
-from truthloop.runs import RunDir, RunError, canonical_json, inputs_sha256
+from truthloop.runs import RunDir, RunError, TraceRow, canonical_json, inputs_sha256
+
+
+def _verdict(iteration: int) -> Verdict:
+    return Verdict(
+        question_id="q-001",
+        iteration=iteration,
+        score=0.0,
+        decision="invalid",
+        threshold=90.0,
+        components={
+            name: Component(value=None, weight=0.2, applicable=False) for name in COMPONENT_NAMES
+        },
+        repair_plan=RepairPlan(),
+        provenance=Provenance(
+            harness_version="0.1.0",
+            inputs_sha256="0" * 64,
+            config_sha256="0" * 64,
+            knowledge_source="files:x",
+            knowledge_fingerprint="0" * 64,
+            generated_at="2026-09-08T19:40:12+00:00",
+        ),
+    )
 
 
 def test_canonical_json_and_inputs_hash() -> None:
@@ -76,25 +98,7 @@ def test_iteration_dirs_are_strict(tmp_path: Path) -> None:
 def test_verdict_round_trip_and_errors(make_run: RunBuilder) -> None:
     run = RunDir(make_run(sample_question(), None, None, None))
     assert run.load_verdict(1) is None
-    verdict = Verdict(
-        question_id="q-001",
-        iteration=1,
-        score=0.0,
-        decision="invalid",
-        threshold=90.0,
-        components={
-            name: Component(value=None, weight=0.2, applicable=False) for name in COMPONENT_NAMES
-        },
-        repair_plan=RepairPlan(),
-        provenance=Provenance(
-            harness_version="0.1.0",
-            inputs_sha256="0" * 64,
-            config_sha256="0" * 64,
-            knowledge_source="files:x",
-            knowledge_fingerprint="0" * 64,
-            generated_at="2026-09-08T19:40:12+00:00",
-        ),
-    )
+    verdict = _verdict(1)
     path = run.write_verdict(verdict)
     assert path == run.verdict_path(1)
     assert not path.with_name(path.name + ".tmp").exists()
@@ -105,6 +109,23 @@ def test_verdict_round_trip_and_errors(make_run: RunBuilder) -> None:
     path.write_text('{"schema_version": 1}', encoding="utf-8")
     with pytest.raises(RunError, match="invalide"):
         run.load_verdict(1)
+
+
+def test_run_dir_history(make_run: RunBuilder) -> None:
+    run = RunDir(make_run(sample_question(), None, None, None, iteration=1))
+    run.write_verdict(_verdict(1))
+    (run.path / "iter-02").mkdir()
+    rows = run.history()
+    assert rows == [
+        TraceRow(iteration=1, score=0.0, decision="invalid", open_findings=0, resolved_findings=0),
+        TraceRow(
+            iteration=2,
+            score=None,
+            decision=None,
+            open_findings=0,
+            resolved_findings=0,
+        ),
+    ]
 
 
 def test_trace_errors(make_run: RunBuilder) -> None:

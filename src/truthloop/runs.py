@@ -14,13 +14,22 @@ from pydantic import ValidationError
 
 from truthloop.contracts.bundle import errors_from
 from truthloop.contracts.question import Question
-from truthloop.contracts.verdict import Verdict
+from truthloop.contracts.verdict import Verdict, finding_target
 
 _ITERATION_DIR: Final = re.compile(r"^iter-([0-9]{2,})$")
 
 
 class RunError(Exception):
     """The run directory is unusable (exit code 1, no verdict written)."""
+
+
+@dataclass(frozen=True)
+class TraceRow:
+    iteration: int
+    score: float | None
+    decision: str | None  # None when the iteration has no verdict yet
+    open_findings: int
+    resolved_findings: int
 
 
 def canonical_json(data: object) -> str:
@@ -119,6 +128,36 @@ class RunDir:
     def append_trace(self, event: Mapping[str, object]) -> None:
         with self.trace_path.open("a", encoding="utf-8") as handle:
             handle.write(canonical_json(dict(event)) + "\n")
+
+    def history(self) -> list[TraceRow]:
+        """One row per iteration, diffing findings against the previous verdict (spec §8.2)."""
+        rows: list[TraceRow] = []
+        previous: set[tuple[str, str]] = set()
+        for iteration in self.iterations():
+            verdict = self.load_verdict(iteration)
+            if verdict is None:
+                rows.append(
+                    TraceRow(
+                        iteration=iteration,
+                        score=None,
+                        decision=None,
+                        open_findings=0,
+                        resolved_findings=0,
+                    )
+                )
+                continue
+            current: set[tuple[str, str]] = {(f.code, finding_target(f)) for f in verdict.findings}
+            rows.append(
+                TraceRow(
+                    iteration=iteration,
+                    score=verdict.score,
+                    decision=verdict.decision,
+                    open_findings=len(current),
+                    resolved_findings=len(previous - current),
+                )
+            )
+            previous = current
+        return rows
 
     def read_trace(self) -> list[dict[str, object]]:
         if not self.trace_path.is_file():
