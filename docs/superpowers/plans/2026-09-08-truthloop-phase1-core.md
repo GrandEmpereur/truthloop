@@ -1340,7 +1340,7 @@ def test_cross_checks(make_run: RunBuilder) -> None:
     loaded = load_iteration(_question(), run_dir / "iter-01", 1)
     assert loaded.bundle is None
     locs = {e.loc for e in loaded.errors}
-    assert {"evidence.iteration", "judge.question_id", "judge.claims[0].id"} <= locs
+    assert {"evidence.iteration", "judge.question_id", "judge.claims.0.id"} <= locs
 
 
 def test_directory_without_files(tmp_path: Path) -> None:
@@ -1363,6 +1363,7 @@ Expected: FAIL, `ModuleNotFoundError: No module named 'truthloop.contracts.bundl
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TypeVar
@@ -1417,7 +1418,10 @@ def load_iteration(question: Question, iteration_dir: Path, iteration: int) -> L
         for index, claim in enumerate(judge.claims):
             if claim.id not in known:
                 loaded.errors.append(
-                    ContractError(loc=f"judge.claims[{index}].id", msg=f"claim {claim.id!r} absente de answer.json")
+                    ContractError(
+                        loc=_format_loc("judge", ("claims", index, "id")),
+                        msg=f"claim {claim.id!r} absente de answer.json",
+                    )
                 )
     if not loaded.errors and answer is not None and evidence is not None:
         loaded.bundle = RunBundle(question=question, answer=answer, evidence=evidence, judge=judge)
@@ -1431,10 +1435,13 @@ def _read(path: Path, label: str, loaded: LoadedIteration, *, required: bool) ->
         return None
     try:
         data: object = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError) as exc:  # ValueError covers JSONDecodeError and UnicodeDecodeError
         loaded.errors.append(ContractError(loc=label, msg=f"JSON invalide : {exc}"))
         return None
     loaded.raw[label] = data
+    if not isinstance(data, dict):
+        loaded.errors.append(ContractError(loc=label, msg="objet JSON attendu"))
+        return None
     return data
 
 
@@ -1446,12 +1453,13 @@ def _validate(model: type[ModelT], data: object, label: str, loaded: LoadedItera
         return None
 
 
+def _format_loc(label: str, parts: Sequence[object]) -> str:
+    suffix = ".".join(str(part) for part in parts)
+    return f"{label}.{suffix}" if suffix else label
+
+
 def errors_from(exc: ValidationError, label: str) -> list[ContractError]:
-    errors: list[ContractError] = []
-    for err in exc.errors():
-        loc = ".".join(str(part) for part in err["loc"])
-        errors.append(ContractError(loc=f"{label}.{loc}" if loc else label, msg=str(err["msg"])))
-    return errors
+    return [ContractError(loc=_format_loc(label, err["loc"]), msg=str(err["msg"])) for err in exc.errors()]
 ```
 
 - [ ] **Step 5 : Vérifier le succès**

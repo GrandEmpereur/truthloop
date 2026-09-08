@@ -1,0 +1,94 @@
+"""verdict.json contract (spec §4.5)."""
+
+from __future__ import annotations
+
+from typing import Final, Literal, Self
+
+from pydantic import Field, model_validator
+
+from truthloop.contracts.common import EntityRef, SchemaVersion, StrictModel
+from truthloop.contracts.repair_plan import RepairPlan
+
+Severity = Literal["critical", "major", "info"]
+Decision = Literal["release", "repair", "escalate", "invalid"]
+FindingCode = Literal[
+    "UNKNOWN_ENTITY",
+    "UNKNOWN_PIVOT",
+    "MISSING_ENTITY",
+    "EXTRA_ENTITY",
+    "MISSING_TABLE",
+    "UNSUPPORTED_CLAIM",
+    "DANGLING_CITATION",
+    "NO_CLAIMS",
+    "CONTRADICTED_BY_GRAPH",
+    "CONTRADICTED_BY_EVIDENCE",
+    "JUDGE_MISSING",
+    "JUDGE_INCOMPLETE",
+    "JUDGE_UNSUPPORTED",
+    "JUDGE_PARTIAL",
+]
+
+COMPONENT_NAMES: Final[tuple[str, ...]] = (
+    "context_recall",
+    "table_recall",
+    "evidence_support",
+    "faithfulness",
+    "relevance_completeness",
+)
+CAP_NAMES: Final[tuple[str, ...]] = (
+    "unknown_entity",
+    "contradiction",
+    "missing_judge",
+    "missing_claims",
+)
+
+
+class Finding(StrictModel):
+    code: FindingCode
+    severity: Severity
+    detail: str
+    entity: EntityRef | None = None
+    claim_id: str | None = None
+    depth: int | None = None
+    via: str | None = None
+
+
+class Component(StrictModel):
+    value: float | None
+    weight: float = Field(ge=0.0)
+    applicable: bool
+
+
+class CapApplied(StrictModel):
+    name: str
+    value: int = Field(ge=0, le=100)
+
+
+class Provenance(StrictModel):
+    harness_version: str
+    inputs_sha256: str
+    config_sha256: str
+    knowledge_source: str
+    knowledge_fingerprint: str
+    generated_at: str
+
+
+class Verdict(StrictModel):
+    schema_version: SchemaVersion = 1
+    question_id: str = Field(min_length=1)
+    iteration: int = Field(ge=1)
+    score: float = Field(ge=0.0, le=100.0)
+    decision: Decision
+    threshold: float = Field(ge=0.0, le=100.0)
+    components: dict[str, Component]
+    caps_applied: list[CapApplied] = Field(default_factory=list)
+    findings: list[Finding] = Field(default_factory=list)
+    declared_gaps: list[str] = Field(default_factory=list)
+    repair_plan: RepairPlan
+    provenance: Provenance
+
+    @model_validator(mode="after")
+    def _components_are_complete(self) -> Self:
+        if set(self.components) != set(COMPONENT_NAMES):
+            raise ValueError(f"components doit contenir exactement {sorted(COMPONENT_NAMES)}")
+        return self
