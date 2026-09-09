@@ -97,3 +97,9 @@ def test_unreadable_and_unknown_query_keys(tmp_path: Path) -> None:
     directory.mkdir()
     with pytest.raises(ConfigError, match=r"illisible|introuvable"):
         load_config(directory)
+
+
+def test_config_with_bom_loads(tmp_path: Path) -> None:
+    path = tmp_path / "truthloop.yaml"
+    path.write_bytes(b"\xef\xbb\xbf" + DEFAULT_CONFIG_YAML.encode("utf-8"))
+    assert load_config(path).loop.max_iterations == 3

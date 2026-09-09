@@ -144,3 +144,10 @@ def test_trace_errors(make_run: RunBuilder) -> None:
     run.trace_path.write_text("[1, 2]\n", encoding="utf-8")
     with pytest.raises(RunError, match="objet JSON attendu"):
         run.read_trace()
+
+
+def test_question_with_bom_loads(make_run: RunBuilder) -> None:
+    run = RunDir(make_run(sample_question(), None, None, None))
+    run.question_path.write_bytes(b"\xef\xbb\xbf" + run.question_path.read_bytes())
+    question, _ = run.load_question()
+    assert question.id == "q-001"

@@ -64,6 +64,10 @@ d'itération sur deux chiffres, `iter-01` d'abord) :
   d'itération en entier (1, 2, …) ; `NN` sur deux chiffres ne sert qu'au nom du dossier ;
 - `final_text` : ta rédaction de la réponse, à partir des claims uniquement.
 
+Écris ces fichiers avec l'outil d'édition, en UTF-8 sans BOM. Si tu passes par PowerShell,
+utilise `Set-Content -Encoding utf8NoBOM` : un BOM ou un double encodage (`Ã©` au lieu de `é`)
+rend les textes illisibles pour le juge.
+
 ## 4. Juger
 
 Lance `truthloop-judge` en subagent avec : « Run `runs/<id>`, itération NN. » Sa réponse est

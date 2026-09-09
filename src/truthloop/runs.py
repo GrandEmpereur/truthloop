@@ -90,7 +90,7 @@ class RunDir:
         if not self.question_path.is_file():
             raise RunError(f"question.json introuvable dans {self.path}")
         try:
-            raw: object = json.loads(self.question_path.read_text(encoding="utf-8"))
+            raw: object = json.loads(self.question_path.read_text(encoding="utf-8-sig"))
         except (OSError, ValueError) as exc:
             raise RunError(f"question.json illisible : {exc}") from exc
         try:
@@ -116,7 +116,7 @@ class RunDir:
         if not path.is_file():
             return None
         try:
-            raw: object = json.loads(path.read_text(encoding="utf-8"))
+            raw: object = json.loads(path.read_text(encoding="utf-8-sig"))
         except (OSError, ValueError) as exc:
             raise RunError(f"verdict.json illisible ({path}) : {exc}") from exc
         try:
@@ -163,7 +163,7 @@ class RunDir:
         if not self.trace_path.is_file():
             return []
         rows: list[dict[str, object]] = []
-        lines = self.trace_path.read_text(encoding="utf-8").splitlines()
+        lines = self.trace_path.read_text(encoding="utf-8-sig").splitlines()
         for line_number, line in enumerate(lines, start=1):
             if not line.strip():
                 continue

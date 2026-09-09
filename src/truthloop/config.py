@@ -107,7 +107,7 @@ def load_config(path: Path) -> Config:
     if not path.is_file():
         raise ConfigError(f"configuration introuvable : {path}")
     try:
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8-sig")
     except (OSError, ValueError) as exc:
         raise ConfigError(f"configuration illisible ({path}) : {exc}") from exc
     try:

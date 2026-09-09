@@ -73,7 +73,7 @@ def load_files(path: Path) -> InMemoryGraph:
 
 def _from_json(path: Path) -> InMemoryGraph:
     try:
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8-sig")
     except (OSError, ValueError) as exc:
         raise KnowledgeError(f"{path.name} illisible : {exc}") from exc
     try:

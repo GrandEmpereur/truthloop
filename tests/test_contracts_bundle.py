@@ -76,3 +76,14 @@ def test_undecodable_file_is_a_contract_error(make_run: RunBuilder) -> None:
     assert loaded.bundle is None
     assert loaded.errors[0].loc == "answer"
     assert loaded.errors[0].msg.startswith("JSON invalide")
+
+
+def test_utf8_bom_is_tolerated(make_run: RunBuilder) -> None:
+    """Windows tools (PowerShell Set-Content) prepend a BOM; the contract must still load."""
+    run_dir = make_run(sample_question(), sample_answer(), sample_evidence(), sample_judge())
+    for name in ("answer", "evidence", "judge"):
+        path = run_dir / "iter-01" / f"{name}.json"
+        path.write_bytes(b"\xef\xbb\xbf" + path.read_bytes())
+    loaded = load_iteration(_question(), run_dir / "iter-01", 1)
+    assert loaded.errors == []
+    assert loaded.bundle is not None

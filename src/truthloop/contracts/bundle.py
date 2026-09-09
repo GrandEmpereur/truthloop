@@ -82,7 +82,7 @@ def _read(path: Path, label: str, loaded: LoadedIteration, *, required: bool) ->
             loaded.errors.append(ContractError(loc=label, msg="fichier manquant"))
         return None
     try:
-        data: object = json.loads(path.read_text(encoding="utf-8"))
+        data: object = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, ValueError) as exc:
         loaded.errors.append(ContractError(loc=label, msg=f"JSON invalide : {exc}"))
         return None
