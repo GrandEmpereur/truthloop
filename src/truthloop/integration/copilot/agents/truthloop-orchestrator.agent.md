@@ -64,9 +64,11 @@ d'itération sur deux chiffres, `iter-01` d'abord) :
   d'itération en entier (1, 2, …) ; `NN` sur deux chiffres ne sert qu'au nom du dossier ;
 - `final_text` : ta rédaction de la réponse, à partir des claims uniquement.
 
-Écris ces fichiers avec l'outil d'édition, en UTF-8 sans BOM. Si tu passes par PowerShell,
-utilise `Set-Content -Encoding utf8NoBOM` : un BOM ou un double encodage (`Ã©` au lieu de `é`)
-rend les textes illisibles pour le juge.
+Écris ces fichiers **uniquement avec l'outil d'édition**, jamais par le terminal
+(`Set-Content`, `Out-File`, `echo >`, heredoc) : PowerShell réencode le texte de la commande et
+produit un double encodage (`Ã©` au lieu de `é`) ou un BOM. Le harness le détecte
+(`MOJIBAKE`, critique) et refuse de publier tant que le fichier n'est pas réécrit. Le terminal
+ne sert qu'aux commandes `truthloop`.
 
 ## 4. Juger
 

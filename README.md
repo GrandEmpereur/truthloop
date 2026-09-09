@@ -145,6 +145,11 @@ pour toutes, puis redémarrer VS Code pour que le terminal intégré hérite des
 [Environment]::SetEnvironmentVariable("UV_PYTHON", "C:\Users\<user>\AppData\Local\Programs\Python\Python314\python.exe", "User")
 ```
 
+Un verdict avec un finding `MOJIBAKE` (`Ã©` au lieu de `é` dans `answer.json`) signale qu'un
+agent a écrit le fichier par le terminal : PowerShell réencode le texte de la commande en
+Windows-1252. Le harness tolère un BOM mais refuse de publier un texte double-encodé ; l'agent
+doit réécrire le fichier avec l'outil d'édition de VS Code. Les gabarits du kit l'imposent.
+
 ## Phase 2 : intégration Copilot
 
 La phase 2 livre le kit Copilot (agents orchestrateur et juge, contrat des retrievers,

@@ -120,3 +120,17 @@ def test_iteration_below_one_is_rejected(
     run = RunDir(make_run(sample_question(), sample_answer(), sample_evidence(), sample_judge()))
     with pytest.raises(RunError, match="invalide"):
         evaluate(run, config, graph, iteration=0, now=NOW)
+
+
+def test_mojibake_blocks_release_without_lowering_the_score(
+    make_run: RunBuilder, config: Config, graph: InMemoryGraph
+) -> None:
+    judge = sample_judge(relevance=0.9, completeness=0.9)
+    answer = {**release_answer(), "final_text": "RÃ©ponse publiÃ©e avec un double encodage."}
+    run = RunDir(make_run(sample_question(), answer, sample_evidence(), judge))
+    verdict = evaluate(run, config, graph, now=NOW)
+    assert verdict.decision == "repair"
+    assert verdict.score == pytest.approx(99.0)
+    assert verdict.caps_applied == []
+    assert [f.code for f in verdict.findings] == ["MOJIBAKE"]
+    assert verdict.repair_plan.actions[0].kind == "improve_answer"

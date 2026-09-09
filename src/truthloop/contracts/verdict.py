@@ -26,6 +26,7 @@ FindingCode = Literal[
     "JUDGE_INCOMPLETE",
     "JUDGE_UNSUPPORTED",
     "JUDGE_PARTIAL",
+    "MOJIBAKE",
 ]
 
 # Derived from the Literal aliases (rather than duplicated as string tuples) so the two

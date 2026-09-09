@@ -48,8 +48,8 @@ les claims contre les chunks cités dans `evidence.json`.
    ```
 
    `question_id` et `iteration` sont recopiés depuis `answer.json`. Chaque `id` doit exister
-   dans `answer.json`. Écris le fichier avec l'outil d'édition, en UTF-8 sans BOM (en
-   PowerShell : `Set-Content -Encoding utf8NoBOM`).
+   dans `answer.json`. Écris le fichier **uniquement avec l'outil d'édition**, jamais par le
+   terminal (PowerShell réencode le texte et casse les accents).
 5. Depuis la racine du dépôt, exécute :
 
    ```

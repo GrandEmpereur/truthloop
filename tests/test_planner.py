@@ -195,3 +195,16 @@ def test_summary_keeps_three_families_and_zero_expected_is_safe() -> None:
     # which only matches actual sentence boundaries in this deterministic output.
     assert len(plan.summary_for_agent.split(". ")) == 3
     assert all(a.expected_gain >= 0 for a in plan.actions)
+
+
+def test_mojibake_plans_a_rewrite_first_even_at_full_score() -> None:
+    findings = [
+        Finding(code="MOJIBAKE", severity="critical", detail="final_text"),
+        Finding(code="UNSUPPORTED_CLAIM", severity="major", detail="x", claim_id="c1"),
+    ]
+    plan = build_plan(_input(findings=findings, score=100.0, raw=100.0))
+    assert plan.actions[0].kind == "improve_answer"
+    assert plan.actions[0].expected_gain == 0.0
+    assert "outil d'édition" in plan.actions[0].instruction
+    assert plan.summary_for_agent.startswith("Encodage")
+    assert [a.kind for a in plan.actions] == ["improve_answer", "verify_claim"]

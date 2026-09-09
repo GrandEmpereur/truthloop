@@ -5162,3 +5162,11 @@ Demander à l'utilisateur s'il souhaite un commit (message proposé : `✨ feat(
   énumérations (`ComponentName`, `CapName` dans `contracts/common.py`).
 - `runs.py` : seul le nom canonique `iter-NN` (`iteration_path(n).name`) est reconnu.
 - `sqlite.py` : chemin percent-encodé dans l'URI `file:…?mode=ro` (chemins contenant `?` ou `#`).
+
+### Écarts appliqués après la première boucle réelle sur Ariane (2026-09-09)
+
+- Lecture en `utf-8-sig` de tous les JSON / YAML d'entrée (BOM écrit par PowerShell).
+- Nouveau grader gate-only `graders/encoding.py` : finding `MOJIBAKE` (critical, sans plafond) sur
+  `final_text`, claims et abstentions double-encodés ; `planner.py` émet une action
+  `improve_answer` critique (famille `fix_encoding`), qui absorbe les findings de claim concernés.
+  Voir spec §6.

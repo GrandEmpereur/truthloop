@@ -184,6 +184,21 @@ def _structural_candidates(inp: PlannerInput) -> list[_Candidate]:
     out.extend(
         _retrieve_candidates(inp, by_code["MISSING_ENTITY"], by_code["MISSING_TABLE"], total_weight)
     )
+    if by_code["MOJIBAKE"]:
+        out.append(
+            _Candidate(
+                kind="improve_answer",
+                severity=_SEVERITY_RANK["critical"],
+                gain=100.0 - inp.score,
+                instruction=(
+                    "Encodage cassé (`Ã©` au lieu de `é`) : réécrire answer.json avec l'outil "
+                    "d'édition, en UTF-8 sans BOM, jamais via le terminal."
+                ),
+                keys=_keys(by_code["MOJIBAKE"]),
+                claim_ids=sorted({f.claim_id for f in by_code["MOJIBAKE"] if f.claim_id}),
+                family="fix_encoding",
+            )
+        )
     if by_code["NO_CLAIMS"]:
         out.append(
             _Candidate(

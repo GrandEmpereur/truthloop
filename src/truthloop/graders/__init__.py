@@ -8,6 +8,7 @@ from truthloop.graders.base import Grader, GraderContext, GraderResult
 from truthloop.graders.citation import grade_citations
 from truthloop.graders.consistency import grade_consistency
 from truthloop.graders.coverage import grade_coverage
+from truthloop.graders.encoding import grade_encoding
 from truthloop.graders.evidence import grade_evidence
 from truthloop.graders.rubric import grade_rubric
 
@@ -17,6 +18,7 @@ ALL_GRADERS: Final[tuple[Grader, ...]] = (
     grade_evidence,
     grade_consistency,
     grade_rubric,
+    grade_encoding,
 )
 
 

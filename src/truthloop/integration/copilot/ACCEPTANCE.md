@@ -20,3 +20,5 @@ terminal intégré (installation : https://docs.astral.sh/uv/).
 - [ ] Deux `truthloop verify` successifs sur la même itération donnent un `verdict.json`
       identique hors `provenance.generated_at`.
 - [ ] `truthloop trace --run runs/<id>` liste toutes les itérations avec score et décision.
+- [ ] Les accents de `final_text` et des `abstentions` sont corrects dans `answer.json` ouvert
+  dans VS Code (pas de `Ã©`) ; sinon le verdict porte un finding `MOJIBAKE` et reste en `repair`.
