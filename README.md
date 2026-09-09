@@ -88,10 +88,54 @@ Python ignore alors le `.pth` de l'installation éditable et `import truthloop` 
 chflags -R nohidden .venv
 ```
 
-## Phase 2 : agents Copilot (à venir)
+## Phase 2 : intégration Copilot
 
-La phase 1 livre le cœur déterministe (`verify`, `schema export`, `init`, `trace`). La
-phase 2 ajoutera la boucle de réparation côté Copilot : agents `.github/agents/*.agent.md`
-(orchestrateur, juge) et un fichier d'instructions décrivant comment consommer le
-`repair_plan` inclus dans `verdict.json` et relancer une itération jusqu'à publication ou
-escalade.
+La phase 2 livre le kit Copilot (agents orchestrateur et juge, contrat des retrievers,
+prompt d'installation, graphe de fumée, checklist) et la commande `truthloop
+install-copilot`, qui l'installe dans un dépôt cible (par exemple un dépôt Magic ouvert
+dans VS Code).
+
+```bash
+uv run truthloop install-copilot --target <dépôt> --knowledge sqlite:<chemin>|files:<chemin> \
+    [--retrievers nom1,nom2] [--force]
+```
+
+- `--target` : dossier du dépôt cible (doit déjà exister).
+- `--knowledge` : source de connaissance à écrire dans le `truthloop.yaml` du dépôt cible,
+  au format `kind:chemin` (`sqlite:knowledge/magic.db` ou `files:knowledge/`). Optionnel
+  seulement si `<target>/truthloop.yaml` existe déjà (il est alors relu).
+- `--retrievers nom1,nom2` : remplace tout de suite le placeholder `agents:` de
+  l'orchestrateur par ces noms de subagents Copilot ; sans cette option, le placeholder
+  est laissé pour que le prompt `/truthloop-install` le renseigne.
+- `--force` : remplace les fichiers déjà installés (agents, instructions, prompt, schémas,
+  fumée) ; `truthloop.yaml` n'est en revanche jamais écrasé.
+
+La commande écrit dans le dépôt cible : `.github/agents/truthloop-orchestrator.agent.md`,
+`.github/agents/truthloop-judge.agent.md`,
+`.github/instructions/truthloop-contract.instructions.md`,
+`.github/prompts/truthloop-install.prompt.md`, `.github/truthloop/schemas/*.schema.json`,
+`.github/truthloop/smoke/{graph.json, truthloop.yaml}`, `.github/truthloop/ACCEPTANCE.md`,
+ainsi que `truthloop.yaml` et `runs/smoke/` à la racine. Elle imprime une ligne par fichier
+(`créé` / `conservé` / `remplacé`) et est idempotente : relancée sans `--force`, elle laisse
+l'arbre identique. Une installation interrompue en cours de route (erreur, Ctrl-C) peut
+laisser des fichiers partiellement écrits ; relancer simplement la commande (avec
+`--force` si l'on veut aussi remplacer les fichiers déjà en place) répare l'arbre, car
+chaque fichier est traité indépendamment et signalé `créé` / `conservé` / `remplacé`.
+
+Dans le dépôt cible, le prompt `/truthloop-install` termine le câblage : il inventorie les
+agents `.github/agents/*.agent.md`, identifie les retrievers (accès au dossier de
+connaissance ou au graphe), remplit le placeholder de l'orchestrateur avec les noms
+confirmés, ajoute le renvoi vers le contrat dans chaque retriever, puis lance le test de
+fumée (`truthloop --version` puis `truthloop verify` sur le graphe de fumée).
+
+Principe d'exécution une fois câblé : l'orchestrateur délègue la recherche à chaque
+retriever puis assemble leurs fragments en `answer.json` / `evidence.json` ; le juge
+évalue chaque claim, écrit `judge.json` et invoque `truthloop verify` ; le harness Python
+décide (`release` / `repair` / `escalate` / `invalid`) et fournit un `repair_plan` que
+l'orchestrateur applique jusqu'à publication ou escalade, dans la limite de
+`loop.max_iterations` itérations.
+
+Vérification manuelle : dérouler `.github/truthloop/ACCEPTANCE.md` dans le dépôt cible une
+fois le câblage terminé. Détails complets (architecture, gabarits, placeholders,
+protocoles des agents, contrat des retrievers) : spécification
+`docs/superpowers/specs/2026-09-09-truthloop-phase2-copilot-design.md`.

@@ -290,5 +290,5 @@ Déroulée à la main dans le dépôt Magic, sans outillage :
 |---|---|---|
 | Kit installé par commande + câblage par prompt | Documentation manuelle | Le déterministe est automatisé, seul le câblage des noms demande de la compréhension. |
 | `uv run --project <chemin>` | `uv tool install` | Aucune installation globale à faire valider ; le chemin est fixé à l'installation et vérifiable. |
-| Le juge lance `verify` | L'orchestrateur lance `verify` | Le contexte de l'orchestrateur reste court ; le juge renvoie un bloc de cinq lignes. |
+| Le juge lance `verify` | L'orchestrateur lance `verify` | Le contexte de l'orchestrateur reste court ; le juge renvoie un bloc de quatre lignes. |
 | Contrat lu par chemin | Instructions `applyTo` | Les retrievers travaillent sur des fichiers variés ; un glob serait soit trop large, soit inopérant. |

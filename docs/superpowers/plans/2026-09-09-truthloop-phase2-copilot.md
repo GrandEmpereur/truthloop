@@ -1330,3 +1330,15 @@ Vérifier aussi que `.github/agents/truthloop-orchestrator.agent.md` contient
 - [ ] **Step 8 : Point de contrôle**
 
 Commit du chunk : `✨ feat(truthloop): copilot agents, retriever contract and install prompt (phase 2)`.
+
+### Écarts appliqués après la revue qualité du chunk 2
+
+Retouches de prose demandées par le reviewer (lecture des gabarits « comme le modèle qui les
+exécute ») : prompt d'installation idempotent (token déjà remplacé, ligne de renvoi déjà
+présente) ; l'orchestrateur relit son propre fichier pour détecter un placeholder, précise le
+type entier de `iteration`, envoie les requêtes graphe et documentation à tous les retrievers
+quand il ignore lequel interroge le graphe, et traite tout code de sortie hors 0/2/3/4 comme une
+erreur (127 : `uv` introuvable) ; le juge accepte une claim étayée par plusieurs chunks et des
+notes entre 0 et 1 sans ancrage strict ; le contrat remplace les notations `a|b` et `0.0-1.0`
+par des descriptions et précise que les ids reçus du plan de réparation sont en minuscules.
+Tests : préfixes des quatre lignes du juge, token du prompt égal à `_RETRIEVERS_TOKEN`.
