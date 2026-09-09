@@ -38,6 +38,12 @@ Schémas JSON : `.github/truthloop/schemas/`.
 > - `confidence_self` : ta confiance réelle dans la claim ; un chiffre honnête, pas un
 >   chiffre flatteur (le harness la compare au verdict).
 > - Numérote localement (`c1`, `ev-1`, …) : l'orchestrateur renumérote.
+> - Pour un chunk issu du graphe d'appels, conserve le contexte disponible dans le texte : type
+>   de lien, référence brute de la cible (avant résolution), tâche ou flux source, identifiant
+>   d'étape, statut de résolution, fichier source. Exemple :
+>   `PRG_A -> PRG_B (CALL, raw_target=14:1, task=CritereHisto, flow_isn=162, resolved)`.
+>   Ce contexte distingue un appel statique d'une exécution et explique les références de
+>   composant ; il ne change pas la notation, il rend la preuve auditable.
 > - Les identifiants que l'orchestrateur te transmet (issus du plan de réparation) peuvent être
 >   en minuscules : cherche sans tenir compte de la casse et renvoie la forme exacte de la
 >   source.

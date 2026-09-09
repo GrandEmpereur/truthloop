@@ -8,10 +8,19 @@ Tu installes truthloop dans ce dépôt. Le kit a déjà été copié par
 et demande confirmation avant l'étape 2.
 
 1. **Inventaire.** Liste `.github/agents/*.agent.md`. Pour chaque agent, lis son frontmatter
-   et son corps, et classe-le : *retriever* (il interroge le dossier de connaissance, le graphe
-   des programmes, la documentation ou les release notes) ou *autre*. Note pour chaque
-   retriever s'il dispose des outils `read` et `search` (information seulement). Présente un
-   tableau nom / rôle / outils et demande confirmation de la liste des retrievers.
+   et son corps, et classe-le dans une de quatre catégories :
+   - *retriever graphe* : il accède au graphe des programmes (export `program-graph/`, base
+     SQLite, `graph.json`) ;
+   - *retriever documentation* : il accède à la documentation, aux release notes, aux cartes de
+     sources (`kg/`, `docs/`, `source_map.json` ou équivalents) ;
+   - *expert de domaine* : il interprète et explique, mais ne va pas chercher de faits dans un
+     dossier de connaissance ;
+   - *autre*.
+   Vérifie pour chacun les outils réels (`read`, `search`, `runCommands`) et les chemins qu'il
+   lit effectivement, pas seulement ce que son nom suggère. Seuls les retrievers (graphe ou
+   documentation) capables de renvoyer le fragment JSON du contrat sont câblés ; un expert de
+   domaine n'est ajouté que s'il sait produire des chunks avec une source citée. Présente un
+   tableau nom / catégorie / outils / chemins et demande confirmation de la liste à câbler.
 2. **Câblage de l'orchestrateur.** Dans `.github/agents/truthloop-orchestrator.agent.md`,
    remplace le token `'{{RETRIEVER_AGENTS}}'` (avec ses quotes) par les noms confirmés,
    chacun entre quotes simples et séparés par une virgule et une espace, par exemple

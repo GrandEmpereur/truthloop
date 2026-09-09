@@ -15,8 +15,9 @@ Spécification complète : `docs/superpowers/specs/2026-09-08-truthloop-design.m
 uv sync
 ```
 
-Python ≥ 3.11, géré par `uv` (voir `uv.lock` et `.python-version`). Dépendances
-runtime minimales : `pydantic`, `pyyaml`, `rich`.
+Python ≥ 3.11 (3.12, 3.13 et 3.14 conviennent), géré par `uv` (voir `uv.lock`). Aucun
+`.python-version` n'est versionné : `uv` utilise l'interpréteur compatible déjà installé.
+Dépendances runtime minimales : `pydantic`, `pyyaml`, `rich`.
 
 ## Commandes
 
@@ -78,6 +79,53 @@ uv run ruff format src tests && uv run ruff check --fix src tests
 uv run mypy
 ```
 
+## Exemple de mapping SQL
+
+Le schéma de la base SQLite n'est jamais imposé : quatre requêtes dans `truthloop.yaml`
+l'adaptent au schéma logique (`programs`, `tables`, `calls`, `program_tables`). Exemple réel,
+anonymisé, pour un export de graphe Magic XPA dont les arêtes portent un type et un statut de
+résolution, et dont les accès aux tables sont codés par des actions :
+
+```yaml
+knowledge:
+  kind: sqlite
+  path: generated/program-graph/graph.sqlite
+  queries:
+    programs: "SELECT DISTINCT TRIM(id) AS id, COALESCE(name, '') AS name FROM programs WHERE id IS NOT NULL AND TRIM(id) <> ''"
+    tables: "SELECT LOWER(TRIM(table_name)) AS id, MIN(TRIM(table_name)) AS name FROM tables WHERE table_name IS NOT NULL AND TRIM(table_name) <> '' GROUP BY LOWER(TRIM(table_name))"
+    calls: "SELECT DISTINCT TRIM(e.source) AS caller_id, TRIM(e.target) AS callee_id FROM edges e JOIN programs p1 ON TRIM(p1.id) = TRIM(e.source) JOIN programs p2 ON TRIM(p2.id) = TRIM(e.target) WHERE e.type = 'CALL' AND COALESCE(e.unresolved, 0) = 0"
+    program_tables: "SELECT DISTINCT TRIM(program) AS program_id, LOWER(TRIM(table_name)) AS table_id, CASE WHEN actions LIKE '%LINK_WRITE%' OR actions LIKE '%LINK_CREATE%' THEN 'write' ELSE 'read' END AS access FROM tables WHERE program IS NOT NULL AND TRIM(program) <> '' AND table_name IS NOT NULL AND TRIM(table_name) <> ''"
+```
+
+Règles qui rendent ce mapping robuste : `GROUP BY LOWER(TRIM(…))` fusionne les collisions de
+casse (`DUAL` / `dual`) que truthloop refuserait ; les jointures excluent les arêtes vers des
+programmes inconnus ; `DISTINCT` retire les doublons ; les accès en double avec des valeurs
+différentes sont fusionnés en `both` par truthloop. Les actions non classées (par exemple un
+accès SQL direct) tombent en `read` : approximation à affiner si la base porte le sens de
+l'accès. La base est toujours ouverte en lecture seule.
+
+## truthloop vendu dans un autre dépôt
+
+Si truthloop est cloné dans un sous-dossier du dépôt hôte (par exemple `<hôte>/truthloop/`),
+exclure ce dossier de la collecte pytest du dépôt hôte, sinon ses tests sont ramassés dans un
+environnement qui n'a pas ses dépendances :
+
+```toml
+[tool.pytest.ini_options]
+norecursedirs = ["truthloop"]
+```
+
+Les tests de truthloop se lancent depuis son propre dossier avec `uv run pytest -q`.
+
+## Phase 3 : ce que la calibration devra mesurer
+
+Le seuil 90 est une valeur par défaut. Les cas à constituer pour le golden set, d'après le
+premier branchement réel : programme très appelé, programme sans appel, appels conditionnels,
+références de composant résolues (`14:*`), accès `read` / `write` / `both`, pivot inconnu,
+collisions de casse, réponses incomplètes, entités inventées. Un score de 100 obtenu en
+construisant la réponse à partir de la base elle-même ne mesure rien : la boucle doit être
+lancée avec l'agent `truthloop-orchestrator`, jamais en écrivant `answer.json` depuis l'oracle.
+
 ## Dépannage
 
 Sur macOS, il arrive que les fichiers créés par `uv` dans `.venv` portent le flag `hidden` ;
@@ -86,6 +134,15 @@ Python ignore alors le `.pth` de l'installation éditable et `import truthloop` 
 
 ```bash
 chflags -R nohidden .venv
+```
+
+Sous Windows derrière un proxy d'entreprise, `uv` peut refuser le certificat interposé
+(`invalid peer certificate: UnknownIssuer`) et tenter de télécharger un Python. Régler une fois
+pour toutes, puis redémarrer VS Code pour que le terminal intégré hérite des variables :
+
+```powershell
+[Environment]::SetEnvironmentVariable("UV_SYSTEM_CERTS", "true", "User")   # UV_NATIVE_TLS est obsolète
+[Environment]::SetEnvironmentVariable("UV_PYTHON", "C:\Users\<user>\AppData\Local\Programs\Python\Python314\python.exe", "User")
 ```
 
 ## Phase 2 : intégration Copilot

@@ -125,6 +125,7 @@ def test_contract_examples_are_valid() -> None:
     raw = kit_path("instructions/truthloop-contract.instructions.md").read_text(encoding="utf-8")
     assert frontmatter(raw)["description"]
     assert "Consigne à copier" in raw
+    assert "raw_target" in raw  # graph chunk context recommendation
     blocks = [json.loads(b) for b in JSON_BLOCK.findall(raw)]
     assert len(blocks) == 3, "fragment, answer.json, evidence.json"
     fragment, answer, evidence = blocks
@@ -162,6 +163,8 @@ def test_install_prompt_and_acceptance() -> None:
     assert "{{" not in rendered.replace("'{{RETRIEVER_AGENTS}}'", "")
     assert ".github/truthloop/smoke/truthloop.yaml" in rendered
     assert "--version" in rendered
+    assert "expert de domaine" in rendered
+    assert "retriever graphe" in rendered
     acceptance = render(kit_path("ACCEPTANCE.md").read_text(encoding="utf-8"), SUBS, [])
     assert "{{" not in acceptance
     assert acceptance.count("- [ ]") >= 6
