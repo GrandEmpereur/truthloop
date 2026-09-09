@@ -114,3 +114,38 @@ def test_trace(make_run: RunBuilder, config_path: Path, capsys: pytest.CaptureFi
     }
     assert main(["trace", "--run", str(run_dir)]) == 0
     assert "repair" in capsys.readouterr().out
+
+
+def test_install_copilot_command(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    target = tmp_path / "magic"
+    target.mkdir()
+    code = main(
+        [
+            "install-copilot",
+            "--target",
+            str(target),
+            "--knowledge",
+            "files:knowledge",
+            "--retrievers",
+            "rag,graph",
+        ]
+    )
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "Installation dans" in out
+    assert "créé : .github/agents/truthloop-orchestrator.agent.md" in out
+    assert "/truthloop-install" in out
+    assert (target / ".github/agents/truthloop-orchestrator.agent.md").is_file()
+    assert main(["install-copilot", "--target", str(target), "--knowledge", "files:other"]) == 0
+    out = capsys.readouterr().out
+    assert "conservé : " in out
+    assert "--knowledge ignoré" in out
+    assert main(["install-copilot", "--target", str(target), "--retrievers", "other"]) == 0
+    assert "--retrievers ignoré" in capsys.readouterr().out
+    assert (
+        main(["install-copilot", "--target", str(tmp_path / "nope"), "--knowledge", "files:k"]) == 1
+    )
+    assert "dossier" in capsys.readouterr().err
+    assert (
+        main(["install-copilot", "--target", str(target), "--knowledge", "neo4j:k", "--force"]) == 1
+    )

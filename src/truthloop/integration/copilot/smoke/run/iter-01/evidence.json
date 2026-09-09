@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "question_id": "q-001",
+  "iteration": 1,
+  "chunks": [
+    {"id": "ev-1", "source": "graph:calls", "text": "PRG_ORD_SAVE -> PRG_ORD_VALID (call)", "score": 0.9},
+    {"id": "ev-2", "source": "graph:calls", "text": "PRG_ORD_NOTIFY calls PRG-ORD-VALID", "score": 0.8}
+  ]
+}

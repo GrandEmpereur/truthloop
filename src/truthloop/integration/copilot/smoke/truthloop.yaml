@@ -1,0 +1,25 @@
+schema_version: 1
+knowledge:
+  kind: files
+  path: graph.json
+  queries: {}
+scoring:
+  weights:
+    context_recall: 0.35
+    table_recall: 0.15
+    evidence_support: 0.15
+    faithfulness: 0.25
+    relevance_completeness: 0.10
+  caps:
+    unknown_entity: 50
+    contradiction: 70
+    missing_judge: 85
+    missing_claims: 85
+  release_threshold: 90
+  release_threshold_no_reference: 95
+loop:
+  max_iterations: 3
+paths:
+  runs: runs
+  golden: golden
+  reports: reports

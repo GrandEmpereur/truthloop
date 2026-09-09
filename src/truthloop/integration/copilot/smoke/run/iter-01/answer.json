@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "question_id": "q-001",
+  "iteration": 1,
+  "producer": "truthloop-orchestrator",
+  "entities": [
+    {"type": "program", "id": "PRG_ORD_VALID"},
+    {"type": "program", "id": "PRG_ORD_SAVE"},
+    {"type": "program", "id": "PRG_ORD_NOTIFY"},
+    {"type": "table", "id": "T_ORDERS"}
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "text": "PRG_ORD_SAVE appelle PRG_ORD_VALID.",
+      "entities": ["PRG_ORD_SAVE", "PRG_ORD_VALID"],
+      "citations": ["ev-1"],
+      "relation": {"subject": "PRG_ORD_SAVE", "predicate": "calls", "object": "PRG_ORD_VALID"},
+      "confidence_self": 0.8
+    },
+    {
+      "id": "c2",
+      "text": "PRG_ORD_NOTIFY appelle PRG_ORD_VALID.",
+      "entities": ["PRG_ORD_NOTIFY", "PRG_ORD_VALID"],
+      "citations": ["ev-2"]
+    }
+  ],
+  "abstentions": [{"text": "Profondeur 2 non explorée.", "entities": ["PRG_ORD_VALID"]}],
+  "final_text": "PRG_ORD_VALID est appelé par PRG_ORD_SAVE et PRG_ORD_NOTIFY."
+}

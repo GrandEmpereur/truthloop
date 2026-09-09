@@ -16,6 +16,7 @@ from truthloop import __version__
 from truthloop.config import DEFAULT_CONFIG_YAML, ConfigError, load_config, resolve_path
 from truthloop.contracts.schemas import export_schemas
 from truthloop.engine import EXIT_CODES, evaluate
+from truthloop.integration.installer import InstallError, install_copilot, parse_knowledge
 from truthloop.knowledge import KnowledgeError
 from truthloop.knowledge.factory import open_knowledge
 from truthloop.render import render_trace, render_verdict
@@ -50,7 +51,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     console = Console(soft_wrap=True, emoji=False, highlight=False)
     try:
         return handler(args, console)
-    except (RunError, ConfigError, KnowledgeError, OSError, ValueError) as exc:
+    except (RunError, ConfigError, KnowledgeError, InstallError, OSError, ValueError) as exc:
         Console(stderr=True, soft_wrap=True, emoji=False, highlight=False).print(
             f"erreur : {exc}", markup=False, style="red"
         )
@@ -85,6 +86,23 @@ def build_parser() -> argparse.ArgumentParser:
     trace.add_argument("--run", type=Path, required=True)
     trace.add_argument("--json", action="store_true", dest="as_json")
     trace.set_defaults(handler=cmd_trace)
+
+    install = subparsers.add_parser(
+        "install-copilot", help="installe le kit Copilot dans un dépôt cible"
+    )
+    install.add_argument("--target", type=Path, required=True, help="dossier du dépôt cible")
+    install.add_argument(
+        "--knowledge", default=None, help="kind:chemin, ex. sqlite:knowledge/magic.db"
+    )
+    install.add_argument(
+        "--retrievers", default="", help="noms des agents retrievers, séparés par des virgules"
+    )
+    install.add_argument(
+        "--force",
+        action="store_true",
+        help="réécrit les fichiers du kit (jamais truthloop.yaml)",
+    )
+    install.set_defaults(handler=cmd_install_copilot)
     return parser
 
 
@@ -138,4 +156,33 @@ def cmd_trace(args: argparse.Namespace, console: Console) -> int:
         )
     else:
         render_trace(rows, console)
+    return 0
+
+
+def cmd_install_copilot(args: argparse.Namespace, console: Console) -> int:
+    knowledge = parse_knowledge(args.knowledge) if args.knowledge else None
+    retrievers = [name.strip() for name in str(args.retrievers).split(",") if name.strip()]
+    target = args.target.resolve()
+    results = install_copilot(args.target, knowledge, retrievers, force=args.force)
+    console.print(f"Installation dans {target} :", markup=False)
+    config_conserved = False
+    orchestrator_conserved = False
+    for result in results:
+        relative = result.path.relative_to(target)
+        console.print(f"{result.status} : {relative}", markup=False)
+        if relative == Path("truthloop.yaml") and result.status == "conservé":
+            config_conserved = True
+        if relative.name == "truthloop-orchestrator.agent.md" and result.status == "conservé":
+            orchestrator_conserved = True
+    if args.knowledge and config_conserved:
+        console.print("truthloop.yaml existant conservé : --knowledge ignoré", markup=False)
+    if retrievers and orchestrator_conserved:
+        console.print(
+            "orchestrateur existant conservé : --retrievers ignoré (utiliser --force)", markup=False
+        )
+    console.print(
+        "Étapes suivantes : ouvrir le dépôt cible dans VS Code, lancer le prompt /truthloop-install,",
+        markup=False,
+    )
+    console.print("puis dérouler .github/truthloop/ACCEPTANCE.md.", markup=False)
     return 0

@@ -704,6 +704,19 @@ Expected: tous les tests passent (160 + 4 + 11 + 1 = 176), couverture ≥ 85 %, 
 
 Commit du chunk (accord déjà donné) : `✨ feat(truthloop): copilot kit resources and install-copilot command`.
 
+### Écarts appliqués après la revue qualité du chunk 1
+
+- `installer.py` : « planifier puis écrire » — `project_root()`, validation des noms de retrievers
+  (`[A-Za-z0-9._-]+`), rendu de tous les gabarits et détection des placeholders inconnus **avant**
+  toute écriture ; `truthloop.yaml` généré avec le chemin en scalaire YAML entre guillemets et
+  validé par `Config.model_validate` (aller-retour du chemin) avant écriture.
+- `_wired_retrievers` lit le frontmatter YAML (`yaml.safe_load`) au lieu d'une regex.
+- Schémas mis en transit dans un `tempfile.TemporaryDirectory()` ; écritures avec `newline="\n"` ;
+  `target.resolve()`.
+- CLI : en-tête « Installation dans … », chemins relatifs au dépôt cible, avertissement
+  « --knowledge ignoré » quand la configuration est conservée, `help=` sur les options.
+- Confirmé par le reviewer : `uv build --wheel` embarque les ressources du kit sans réglage.
+
 ---
 
 ## Chunk 2 : gabarits d'agents, contrat, prompt d'installation, checklist

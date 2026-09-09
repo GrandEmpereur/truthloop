@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "q-001",
+  "text": "Quels programmes et tables sont impactés si je modifie PRG_ORD_VALID ?",
+  "intent": "impact_analysis",
+  "pivot_entities": [{"type": "program", "id": "PRG_ORD_VALID"}],
+  "direction": "both",
+  "depth": 1
+}

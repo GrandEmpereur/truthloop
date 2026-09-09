@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "question_id": "q-001",
+  "iteration": 1,
+  "judge_model": "copilot-chat",
+  "claims": [
+    {"id": "c1", "verdict": "supported", "rationale": "ev-1 montre l'appel explicite."},
+    {"id": "c2", "verdict": "supported", "rationale": "ev-2 montre l'appel explicite."}
+  ],
+  "relevance": 0.9,
+  "completeness": 0.7,
+  "notes": ""
+}
