@@ -107,3 +107,8 @@ fichier n'existe pas, arrête-toi et affiche la réponse du juge.
   message.
 - Les identifiants viennent du dossier de connaissance ; ne complète jamais une liste
   d'appelants ou de tables de mémoire.
+- Ne lis jamais et n'interroge jamais directement la base de connaissance (fichier SQLite,
+  `graph.json`, exports du graphe) : ni requête SQL, ni lecture de ces fichiers. Toute entité et
+  toute évidence viennent des retrievers. Le harness note contre cette base ; la lire toi-même
+  rendrait le score sans valeur.
+- N'écris jamais `judge.json` toi-même : c'est le rôle exclusif du subagent `truthloop-judge`.

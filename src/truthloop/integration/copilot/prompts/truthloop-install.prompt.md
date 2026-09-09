@@ -31,5 +31,9 @@ et demande confirmation avant l'étape 2.
    Attendu : code de retour 2, `"decision": "repair"`, deux actions `retrieve_entities`.
    Ce test utilise le graphe de fumée, pas la base de connaissance du dépôt. Rapporte le
    résultat exact ; si `uv` est introuvable, indique-le.
-5. **Suite.** Rappelle la checklist `.github/truthloop/ACCEPTANCE.md` et propose de commencer
+5. **Première question.** Explique que la boucle réelle ne se lance qu'en **sélectionnant
+   l'agent `truthloop-orchestrator` dans la liste des agents** de Copilot Chat, puis en posant la
+   question. Ne construis jamais toi-même `answer.json` / `judge.json` à partir de la base : le
+   score obtenu ainsi copierait l'oracle et ne mesurerait rien.
+6. **Suite.** Rappelle la checklist `.github/truthloop/ACCEPTANCE.md` et propose de commencer
    par son premier point.

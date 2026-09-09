@@ -7,7 +7,8 @@ terminal intégré (installation : https://docs.astral.sh/uv/).
 - [ ] `/truthloop-install` a listé les retrievers, remplacé le placeholder de l'orchestrateur,
       et le test de fumée (graphe de fumée) a rendu `repair` avec deux actions
       `retrieve_entities`.
-- [ ] Avec l'agent `truthloop-orchestrator`, une question d'impact sur un programme connu
+- [ ] Avec l'agent `truthloop-orchestrator` **sélectionné dans la liste des agents** (pas l'agent
+      par défaut), une question d'impact sur un programme connu
       produit `runs/<id>/question.json`, `iter-01/{answer,evidence,judge,verdict}.json` et
       `trace.jsonl`.
 - [ ] La boucle atteint `release` en au plus {{MAX_ITERATIONS}} itérations et la réponse

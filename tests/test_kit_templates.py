@@ -101,6 +101,7 @@ def test_orchestrator_template_before_and_after_substitution() -> None:
         assert kind in rendered
     assert "truthloop-contract.instructions.md" in rendered
     assert "Consigne à copier" in rendered
+    assert "n'interroge jamais directement la base de connaissance" in rendered
 
 
 def test_judge_template() -> None:
