@@ -9,3 +9,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local Python pin (uv python pin): the project only requires >= 3.11, see pyproject.toml
+.python-version
